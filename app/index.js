@@ -26,7 +26,7 @@ class App extends Component {
 	request() {
 		let data = "";
 		let func = this.set;
-		https.get('http://ec2-34-206-1-57.compute-1.amazonaws.com:8000/', function (response) {
+		https.get('//ec2-34-206-1-57.compute-1.amazonaws.com:8000/', function (response) {
 			response.setEncoding('utf8');
 			response.on("data", function (d) {
 				data += d;
