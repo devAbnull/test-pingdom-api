@@ -1,145 +1,132 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import Request from "react-http-request";
-import https from "https";
-const request = require('superagent');
-// var curl = require('curlrequest');
-// var browser = require('browser-js')
-class Main extends Component {
-	componentDidMount(){
-		// let url="https://api.pingdom.com/api/2.0/checks";
-		// let username='siddharth@appbase.io';
-		// let password='pkPQ2m19RqhG';
-		// return fetch(url,{
-		// 	method:'get',
-		// 	credentials: 'include',
-		// 	headers: {
-		// 		"authorization": "Basic " + btoa(username + ":" + password),
-		// 		"app-key":"xq21z5kyhvb34bwfozfn5kiv18adoghe"
-		// 	}
+import http from "http";
+import ReactHighcharts from "react-highcharts";
+class App extends Component {
+	constructor(props) {
+		super(props);
+		this.state = {
+			data: {},
+			checks: [],
+			ignore: [] // Checks to be ingored. Note: check name in lowercase
+		}
+		this.componentDidMount = this.componentDidMount.bind(this);
+		this.request = this.request.bind(this);
+		this.set = this.set.bind(this);
+	}
 
-		// }).then((response) => console.log(response))
+	set(d, chks) {
+		this.setState({
+			data: d,
+			checks: chks,
+			ignore: this.state.ignore
+		})
+	}
+
+	request() {
+		let data = "";
+		let func = this.set;
+		http.get('http://ec2-34-206-1-57.compute-1.amazonaws.com:8000/', function (response) {
+			response.setEncoding('utf8');
+			response.on("data", function (d) {
+				data += d;
+			});
+
+			response.on('end', function () {
+				// console.log(data);
+				let jobj = JSON.parse(data);
+				func(jobj,jobj.checks);
+				// let array = [];
+				// JSON.parse(data).checks.map(item => { array.push(item.id) })
+				// func(array);
+			});
+		});
+	}
+
+	fetcho(item){
+		let id = item.id;
+		// debugger;
+		// console.log(typeof this.state.data[id]);
+		// debugger;
+		if(this.state.data[id]!=="" && this.state.ignore.indexOf(item.name.toLowerCase())<0 ) {
+			let parseJson=(JSON.parse(this.state.data[id]));
+			// debugger;
+			let data=parseJson.summary.hours;
+			let graphData=[];
+			let xAixData=[];
+			let i=20;
+			data.map(item=>{
+				graphData.push(item.avgresponse);
+				let time=new Date(new Date().getTime()  - (60 * 60*1000) * i);
+				xAixData.push(`${time.getHours()}:${time.getMinutes()}`);
+				i=i-1;
+			});
+			console.log(graphData);
+			console.log(xAixData);
+			let config = {
+			  xAxis: {
+			    categories: xAixData
+			  },
+
+			  yAxis:{
+			  	units: [
+			  	['millisecond', [100]]
+			  	],
+			  	title: {
+			  		text:"milliseconds"
+			  	}
+			  },
+			  series: [{
+			    data: graphData
+			  }],
+			  chart: {
+			    "width": "400",
+			    "height": "200"
+			  },
+			  plotOptions: {
+			  	line: {
+			  		marker: {
+			  			enabled: false
+			  		}
+			  	}
+			  },
+			  title:{
+			  	text: ""
+			  },
+			  legend: {
+			  	enabled : false
+			  } 
+			};
+			console.log(config)
+			return (
+				<li className="row">
+					<div className="col s4">
+						<h6>{item.name.toUpperCase()}</h6>
+					</div>
+					<div className="col s6">
+						<ReactHighcharts config={config} ref={"chart"+id}>{id}</ReactHighcharts>
+					</div>
+				</li>
+				);
+		}
+		// return (<div></div>);
+	}
+
+	componentDidMount() {
+		this.request();
+		//console.log(this.state.data);
+
 	}
 
 	render() {
-		function make_base_auth(user, password) {
-		    var tok = user + ':' + password;
-		    var hash = btoa(tok);
-		    return 'Basic ' + hash;
-		}
-		// console.log(btoa('siddharth@appbase.io:pkPQ2m19RqhG'));
-		let username='siddharth@appbase.io';
-		let password='pkPQ2m19RqhG';
-		let url="https://api.pingdom.com/api/2.0/checks";
-		// var xhttp = new XMLHttpRequest();
-		// xhttp.open("GET", "https://api.pingdom.com/api/2.0/checks", true);
-		// xhttp.withCredentials = true;
-		// xhttp.setRequestHeader('Authorization', 'Basic '+ btoa('siddharth@appbase.io:pkPQ2m19RqhG'));
-		// xhttp.setRequestHeader('App-Key', 'xq21z5kyhvb34bwfozfn5kiv18adoghe');
-		// // xhttp.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
-		// xhttp.send();
-		// options = {
-		// 	url:url,
-		// 	method: 'get'
-		// }
-		// curl.request(options, );
-		// $.ajax({
-		//   type: 'get',
-		//   crossDomain: true,
-		//   dataType: "json",
-		//   username: username,
-		//   password: password,
-		//   contentType: "application/json",
-		//   beforeSend: function(xhr){
-		//     xhr.setRequestHeader('Authorization', "Basic " + btoa(username + ":" + password));
-		//     xhr.setRequestHeader('App-Key', 'xq21z5kyhvb34bwfozfn5kiv18adoghe');
-		//   },
-		//   url: "https://api.pingdom.com/api/2.0/checks",
-		//   success: function(Data) {
-		//     console.log(Data);
-		//   },
-		//     error: function(Data) { 
-		//   }
-		// });
-		// var options = {
-		// 	    uri: "https://api.pingdom.com/api/2.0/checks",
-			    
-		// 	    headers: {
-		// 	        "app-key":"xq21z5kyhvb34bwfozfn5kiv18adoghe",
-		// 	        "Authorization": "Basic " + btoa(username + ":" + password)
-		// 	    },
-		// 	    json: true
-		// 	}
-		// 	rp(options).then(function (repos) {
-		//         console.log('User has %d repos', repos.length);
-		//     })
-		//     .catch(function (err) {
-		//         // API call failed... 
-		//     });
-
-
-		const options = {
-		  host: 'api.pingdom.com',
-		  method: 'GET',
-		  path : '/api/2.0/checks',
-		  // agent: 'curl/7.47.0',
-		    headers: {
-		     'Authorization': 'Basic ' + new Buffer('siddharth@appbase.io' + ':' + 'pkPQ2m19RqhG').toString('base64'),
-		     'App-Key': '1i5xgl26ovy8t2hur11ke6whoapgwocf',
-		   }
-		};
-
-		https.get(options,function(response){
-		    response.setEncoding('utf8');
-		    response.on("data",function(data){
-		        console.log(data);
-		    });
-		});
-
-		// request
-		// .get("https://api.pingdom.com/api/2.0/checks")
-		// // .withCredentials()
-		// .auth(username, password)
-		// .set('Authorization', 'Basic ' + new Buffer('siddharth@appbase.io' + ':' + 'pkPQ2m19RqhG').toString('base64'))
-		// .set('API-Key', 'xq21z5kyhvb34bwfozfn5kiv18adoghe')
-		// // .set('User-Agent', 'curl/7.47.0')
-		// .then(options,function(response){
-		// 	// response.setHeader('Access-Control-Allow-Origin', '*');
-		// 	// response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS, DETELE');
-		// 	// response.setHeader('Access-Control-Allow-Headers', '*');
-		//     // response.setEncoding('utf8');
-		//     // response.on("data",function(data){
-		//         console.log(response);
-		//     // });
-		// });
-
 		return (
-			
-			<div>
-				{/*<Request
-					url="https://api.pingdom.com/api/2.0/checks"
-					method="get"
-					accept="application/json"
-					auth={{"user":"siddharth@appbase.io","pass":password}}
-					headers={{
-						// "Authorization": "Basic " + btoa(username + ":" + password),
-						"app-key":"xq21z5kyhvb34bwfozfn5kiv18adoghe"
-						// 'Account-Email':'siddharth@appbase.io',
-					}}
-					// withCredentials={true}
-					verbose={true}
-				>
-				{
-				({ error, result, loading }) => {
-					return (<div>{result}</div>)
+			<div style={{width:"500px", marginLeft:"300px"}}>
+				<ul key={this.state.data}>
+				{this.state.checks.map(item =>{return (<div key={item.id}> {this.fetcho(item)} </div>)})}
 
-					}
-				}
-				</Request>*/}
-				<div>hurah!</div>
+				</ul>
 			</div>
 		);
 	}
 }
-
-ReactDOM.render(<Main />, document.getElementById("app"));
+ReactDOM.render(<App />, document.getElementById("app"));
