@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import http from "http";
+import https from "https";
 import ReactHighcharts from "react-highcharts";
 class App extends Component {
 	constructor(props) {
@@ -26,7 +26,7 @@ class App extends Component {
 	request() {
 		let data = "";
 		let func = this.set;
-		http.get('http://ec2-34-206-1-57.compute-1.amazonaws.com:8000/', function (response) {
+		https.get('http://ec2-34-206-1-57.compute-1.amazonaws.com:8000/', function (response) {
 			response.setEncoding('utf8');
 			response.on("data", function (d) {
 				data += d;
